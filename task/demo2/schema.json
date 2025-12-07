@@ -1,0 +1,10 @@
+{
+    "type": "object",
+    "properties": {
+        "textarea": {
+            "title": "文本编辑1111框",
+            "type": "string",
+            "format": "textarea"
+        }
+    }
+}
