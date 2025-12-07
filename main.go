@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strconv"
 	"web-tool-backend/container"
 	"web-tool-backend/task/demo"
@@ -64,6 +66,14 @@ func main() {
 	}
 
 	router.NoRoute(func(ctx *gin.Context) {
+		fullPath := filepath.Join(cfg.FrontendDir, ctx.Request.URL.Path)
+		if _, err := os.Stat(fullPath); os.IsNotExist(err) {
+			ctx.File(filepath.Join(cfg.FrontendDir, "index.html"))
+			return
+		}
+
+		fmt.Printf("fullPath: %s\n", fullPath)
+
 		fileServer := http.StripPrefix("", http.FileServer(http.Dir(cfg.FrontendDir)))
 		fileServer.ServeHTTP(ctx.Writer, ctx.Request)
 	})
