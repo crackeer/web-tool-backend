@@ -1,5 +1,7 @@
 package container
 
+import "sort"
+
 type Description struct {
 	Title     string      `json:"title"`
 	InputForm interface{} `json:"input_form"`
@@ -37,5 +39,8 @@ func GetToolConfig() []map[string]interface{} {
 			"input_form": desc.InputForm,
 		})
 	}
+	sort.Slice(names, func(i, j int) bool {
+		return names[i]["name"].(string) < names[j]["name"].(string)
+	})
 	return names
 }

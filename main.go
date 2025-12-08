@@ -8,8 +8,12 @@ import (
 	"path/filepath"
 	"strconv"
 	"web-tool-backend/container"
+	"web-tool-backend/task/base64"
 	"web-tool-backend/task/demo"
-	"web-tool-backend/task/demo2"
+	"web-tool-backend/task/downloadwork"
+	"web-tool-backend/task/json2csv"
+	"web-tool-backend/task/md5"
+	"web-tool-backend/task/qrcode"
 
 	"github.com/gin-gonic/gin"
 
@@ -20,6 +24,7 @@ import (
 type AppConfig struct {
 	Port        string `env:"PORT" envDefault:"8080"`
 	FrontendDir string `env:"FRONTEND_DIR" envDefault:"./frontend"`
+	TempDir     string `env:"TEMP_DIR" envDefault:"/tmp/web-tool"`
 }
 
 var (
@@ -49,7 +54,11 @@ func main() {
 
 	// 注册DemoTask
 	container.RegisterTool("demo", demo.NewDemoTask())
-	container.RegisterTool("demo2", demo2.NewDemoTask())
+	container.RegisterTool("download-work", downloadwork.NewWorkDownload())
+	container.RegisterTool("md5", md5.NewMd5Task())
+	container.RegisterTool("qrcode", qrcode.NewQrcodeTask())
+	container.RegisterTool("base64", base64.NewBase64Task())
+	container.RegisterTool("json2csv", json2csv.NewJson2CsvTask(filepath.Join(cfg.TempDir, "json2csv")))
 
 	// 创建 Gin 实例
 	router := gin.Default()
@@ -63,6 +72,8 @@ func main() {
 		apiGroup.GET("/task/list", GetTasks)
 		apiGroup.POST("/task/delete", DeleteTask)
 		apiGroup.GET("/task/detail", GetTaskByID)
+		apiGroup.POST("/upload", UploadFile)
+		apiGroup.GET("/download", DownloadFile)
 	}
 
 	router.NoRoute(func(ctx *gin.Context) {
@@ -191,16 +202,12 @@ func RunTaskSSE(ctx *gin.Context) {
 		ctx.Writer.Flush()
 	}
 
-	printMessage("Task started")
-
 	taskID := ctx.Query("task_id")
 	task := container.GetTask(taskID)
 	if task == nil {
 		printMessage(fmt.Sprintf("task with id %s not found", taskID))
 		return
 	}
-	fmt.Printf("task: %v\n", task)
-
 	tool := container.GetTool(task.TaskType)
 	if tool == nil {
 		printMessage(fmt.Sprintf("tool %s not found", task.TaskType))
@@ -213,13 +220,47 @@ func RunTaskSSE(ctx *gin.Context) {
 		printMessage(fmt.Sprintf("failed to recv input: %v", err))
 		return
 	}
-
+	printMessage(fmt.Sprintf("Task started, task_id: %s", taskID))
+	printMessage("")
 	if err := tool.Run(printMessage); err != nil {
+		printMessage("")
 		printMessage(fmt.Sprintf("failed to run task: %v", err))
 		return
 	}
+	printMessage("")
 	printMessage("Task completed successfully")
 	closeEvent := fmt.Sprintf("event: close\nretry: 0\ndata: %s\n\n", "Task completed successfully")
 	ctx.SSEvent("close", closeEvent)
 	ctx.Writer.Flush()
+}
+
+func UploadFile(ctx *gin.Context) {
+	file, err := ctx.FormFile("file")
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// 保存文件到临时目录
+	tempPath := filepath.Join(cfg.TempDir, file.Filename)
+	if err := os.MkdirAll(filepath.Dir(tempPath), os.ModePerm); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	if err := ctx.SaveUploadedFile(file, tempPath); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"message": "File uploaded successfully", "path": tempPath})
+}
+
+func DownloadFile(ctx *gin.Context) {
+	filePath := ctx.Query("file_path")
+	if filePath == "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "file_path is required"})
+		return
+	}
+
+	ctx.File(filePath)
 }

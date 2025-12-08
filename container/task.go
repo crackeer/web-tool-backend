@@ -46,8 +46,6 @@ func CreateInput(taskType string, input string) (string, error) {
 		CreateTime: now,
 	}
 
-	fmt.Printf("task: %v\n", task)
-
 	// 保存到数据库
 	if result := db.Create(&task); result.Error != nil {
 		return "", result.Error
