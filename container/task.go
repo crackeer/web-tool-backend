@@ -23,15 +23,16 @@ func (Task) TableName() string {
 	return "task"
 }
 
-func init() {
+func InitDB() error {
 	var err error
-	db, err = gorm.Open(sqlite.Open("web-tool.db"), &gorm.Config{})
+	db, err = gorm.Open(sqlite.Open(GetConfig().SQLLiteDB), &gorm.Config{})
 	if err != nil {
-		panic("failed to connect database: " + err.Error())
+		return fmt.Errorf("failed to connect database: %w", err)
 	}
 
 	// 自动迁移创建表
 	db.AutoMigrate(&Task{})
+	return nil
 }
 
 // CreateInput 创建任务并保存到数据库

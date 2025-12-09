@@ -17,18 +17,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/caarlos0/env/v11"
 	_ "github.com/joho/godotenv/autoload"
-)
-
-type AppConfig struct {
-	Port        string `env:"PORT" envDefault:"8080"`
-	FrontendDir string `env:"FRONTEND_DIR" envDefault:"./frontend"`
-	TempDir     string `env:"TEMP_DIR" envDefault:"/tmp/web-tool"`
-}
-
-var (
-	cfg *AppConfig
 )
 
 func enableCORS(ctx *gin.Context) {
@@ -45,12 +34,17 @@ func enableCORS(ctx *gin.Context) {
 	ctx.Next()
 }
 
+var cfg *container.AppConfig
+
 func main() {
-	// 从环境变量中解析配置
-	cfg = &AppConfig{}
-	if err := env.Parse(cfg); err != nil {
-		log.Fatalf("Failed to parse environment variables: %v", err)
+	// 初始化配置
+	if err := container.InitConfig(); err != nil {
+		log.Fatalf("Failed to initialize config: %v", err)
 	}
+	if err := container.InitDB(); err != nil {
+		log.Fatalf("Failed to initialize database: %v", err)
+	}
+	cfg = container.GetConfig()
 
 	// 注册DemoTask
 	container.RegisterTool("demo", demo.NewDemoTask())

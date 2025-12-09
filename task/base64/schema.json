@@ -1,4 +1,5 @@
 {
+    "title": "Base64编码/解码",
     "type": "object",
     "properties": {
         "input": {
