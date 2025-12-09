@@ -123,3 +123,23 @@ func Json2CsvFile(jsonData []byte, csvFilePath string) error {
 
 	return nil
 }
+
+// ReadJsonFile
+//
+//	@param filePath
+//	@param data
+//	@return error
+func ReadJsonFile(filePath string, data interface{}) error {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return fmt.Errorf("failed to open JSON file: %v", err)
+	}
+	defer file.Close()
+
+	decoder := json.NewDecoder(file)
+	if err := decoder.Decode(data); err != nil {
+		return fmt.Errorf("failed to decode JSON data: %v", err)
+	}
+
+	return nil
+}

@@ -11,6 +11,7 @@ type AppConfig struct {
 	FrontendDir string `env:"FRONTEND_DIR" envDefault:"./frontend"`
 	TempDir     string `env:"TEMP_DIR" envDefault:"/tmp/web-tool"`
 	SQLLiteDB   string `env:"SQLLiteDB" envDefault:"./web-tool.db"`
+	CrdDir      string `env:"CRD_DIR" envDefault:"./crd"`
 }
 
 var (
