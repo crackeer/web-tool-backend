@@ -10,7 +10,7 @@ type AppConfig struct {
 	Port        string `env:"PORT" envDefault:"8080"`
 	FrontendDir string `env:"FRONTEND_DIR" envDefault:"./frontend"`
 	TempDir     string `env:"TEMP_DIR" envDefault:"/tmp/web-tool"`
-	SQLLiteDB   string `env:"SQLITE_DB" envDefault:"./web-tool.db"`
+	SQLLiteDB   string `env:"SQLLiteDB" envDefault:"./web-tool.db"`
 }
 
 var (
