@@ -45,8 +45,11 @@ func Main() {
 	apiGroup := router.Group("/api")
 	{
 		apiGroup.GET("/run", api.RunTaskSSE)
-		apiGroup.GET("/crd", api.GetCrdList)
-		apiGroup.GET("/config", api.GetConfig)
+		apiGroup.GET("/task/config/list", task.GetTaskConfigList)
+		apiGroup.POST("/task/config/create", task.CreateTaskConfig)
+		apiGroup.POST("/task/config/update", task.UpdateTaskConfig)
+		apiGroup.POST("/task/config/delete", task.DeleteTaskConfig)
+
 		apiGroup.POST("/task/create", task.CreateTask)
 		apiGroup.GET("/task/list", task.GetTasks)
 		apiGroup.POST("/task/delete", task.DeleteTask)

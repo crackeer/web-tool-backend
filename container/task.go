@@ -12,15 +12,30 @@ var db *gorm.DB
 
 // Task 定义Task结构体，对应task表
 type Task struct {
-	ID         uint      `gorm:"autoIncrement;column:id" json:"id"`
-	TaskType   string    `gorm:"column:task_type" json:"task_type"`
-	Input      string    `gorm:"column:input" json:"input"`
-	CreateTime time.Time `gorm:"column:create_time" json:"create_time"`
+	ID            uint      `gorm:"autoIncrement;column:id" json:"id"`
+	TaskType      string    `gorm:"column:task_type" json:"task_type"`
+	Input         string    `gorm:"column:input" json:"input"`
+	CreateTime    time.Time `gorm:"column:create_time" json:"create_time"`
+	RunEndpoint   string    `gorm:"column:run_endpoint" json:"run_endpoint"`
+	InputEndpoint string    `gorm:"column:input_endpoint" json:"input_endpoint"`
 }
 
 // 设置表名
 func (Task) TableName() string {
 	return "task"
+}
+
+type TaskConfig struct {
+	TaskType      string `gorm:"column:task_type" json:"task_type"`
+	Title         string `gorm:"column:title" json:"title"`
+	Form          string `gorm:"column:form" json:"form"`
+	RunEndpoint   string `gorm:"column:run_endpoint" json:"run_endpoint"`
+	InputEndpoint string `gorm:"column:input_endpoint" json:"input_endpoint"`
+}
+
+// 设置表名
+func (TaskConfig) TableName() string {
+	return "task_config"
 }
 
 func InitDB() error {
@@ -32,19 +47,36 @@ func InitDB() error {
 
 	// 自动迁移创建表
 	db.AutoMigrate(&Task{})
+	db.AutoMigrate(&TaskConfig{})
+
 	return nil
 }
 
 // CreateInput 创建任务并保存到数据库
-func CreateInput(taskType string, input string) (string, error) {
+func CreateInput(taskType string, input string, runEndpoint string, inputEndpoint string) (string, error) {
 	// 生成当前时间
 	now := time.Now()
 
+	// 如果前端没有提供runEndpoint和inputEndpoint，尝试从TaskConfig中获取
+	if runEndpoint == "" || inputEndpoint == "" {
+		var taskConfig TaskConfig
+		if err := db.Where("task_type = ?", taskType).First(&taskConfig).Error; err == nil {
+			if runEndpoint == "" {
+				runEndpoint = taskConfig.RunEndpoint
+			}
+			if inputEndpoint == "" {
+				inputEndpoint = taskConfig.InputEndpoint
+			}
+		}
+	}
+
 	// 创建Task实例，ID由SQLite自动生成
 	task := Task{
-		TaskType:   taskType,
-		Input:      input,
-		CreateTime: now,
+		TaskType:      taskType,
+		Input:         input,
+		CreateTime:    now,
+		RunEndpoint:   runEndpoint,
+		InputEndpoint: inputEndpoint,
 	}
 
 	// 保存到数据库
@@ -64,12 +96,6 @@ func GetTask(inputID string) *Task {
 		return nil
 	}
 	return &task
-}
-
-// UpdateTaskType 更新任务类型
-func UpdateTaskType(inputID string, taskType string) error {
-	result := db.Model(&Task{}).Where("id = ?", inputID).Update("task_type", taskType)
-	return result.Error
 }
 
 // ListTasks 查询任务列表，支持分页和任务类型过滤
@@ -104,5 +130,45 @@ func ListTasks(taskType string, page int, pageSize int) ([]*Task, int64, error) 
 // DeleteTask 根据ID删除任务
 func DeleteTask(taskID uint) error {
 	result := db.Delete(&Task{}, taskID)
+	return result.Error
+}
+
+func UpdateTaskConfig(taskType string, taskConfig *TaskConfig) error {
+	updateData := map[string]interface{}{
+		"title":          taskConfig.Title,
+		"form":           taskConfig.Form,
+		"run_endpoint":   taskConfig.RunEndpoint,
+		"input_endpoint": taskConfig.InputEndpoint,
+	}
+	fmt.Printf("updateData: %v\n", updateData)
+	result := db.Table("task_config").Where("task_type = ?", taskType).Updates(updateData)
+	return result.Error
+}
+
+func CreateTaskConfig(taskConfig *TaskConfig) error {
+	result := db.Create(taskConfig)
+	return result.Error
+}
+
+func GetTaskConfig(taskType string) *TaskConfig {
+	var taskConfig TaskConfig
+	result := db.Where("task_type = ?", taskType).First(&taskConfig)
+	if result.Error != nil {
+		return nil
+	}
+	return &taskConfig
+}
+
+func GetTaskConfigList() ([]*TaskConfig, error) {
+	var taskConfigs []*TaskConfig
+	result := db.Find(&taskConfigs)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return taskConfigs, nil
+}
+
+func DeleteTaskConfig(taskType string) error {
+	result := db.Where("task_type = ?", taskType).Delete(&TaskConfig{})
 	return result.Error
 }

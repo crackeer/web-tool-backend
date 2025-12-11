@@ -15,7 +15,7 @@ func CreateTask(ctx *gin.Context) {
 		return
 	}
 
-	inputID, err := container.CreateInput(task.TaskType, task.Input)
+	inputID, err := container.CreateInput(task.TaskType, task.Input, task.RunEndpoint, task.InputEndpoint)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
