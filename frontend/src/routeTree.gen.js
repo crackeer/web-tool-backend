@@ -10,8 +10,8 @@
 
 import { Route as rootRouteImport } from './route/__root'
 import { Route as TasksRouteImport } from './route/tasks'
-import { Route as TaskConfigRouteImport } from './route/task-config'
 import { Route as SettingsRouteImport } from './route/settings'
+import { Route as ConfigRouteImport } from './route/config'
 import { Route as AboutRouteImport } from './route/about'
 import { Route as IndexRouteImport } from './route/index'
 
@@ -20,14 +20,14 @@ const TasksRoute = TasksRouteImport.update({
   path: '/tasks',
   getParentRoute: () => rootRouteImport,
 })
-const TaskConfigRoute = TaskConfigRouteImport.update({
-  id: '/task-config',
-  path: '/task-config',
-  getParentRoute: () => rootRouteImport,
-})
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+})
+const ConfigRoute = ConfigRouteImport.update({
+  id: '/config',
+  path: '/config',
   getParentRoute: () => rootRouteImport,
 })
 const AboutRoute = AboutRouteImport.update({
@@ -44,8 +44,8 @@ const IndexRoute = IndexRouteImport.update({
 const rootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  ConfigRoute: ConfigRoute,
   SettingsRoute: SettingsRoute,
-  TaskConfigRoute: TaskConfigRoute,
   TasksRoute: TasksRoute,
 }
 export const routeTree = rootRouteImport._addFileChildren(rootRouteChildren)

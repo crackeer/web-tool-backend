@@ -22,7 +22,7 @@ function Index() {
   const form = useForm()
   const [tools, setTools] = useState([])
   const [selectedTool, setSelectedTool] = useState('')
-  const [toolConfig, setToolConfig] = useState(null)
+  const [selectedToolInfo, setSelectedToolInfo] = useState(null)
   const [formData, setFormData] = useState({})
   const location = window.location
 
@@ -36,22 +36,22 @@ function Index() {
           name: config.task_type,
           title: config.title,
           form: JSON.parse(config.form),
-          run_endpoint: config.run,
-          input_endpoint: config.input
+          run_endpoint: config.run_endpoint,
+          input_endpoint: config.input_endpoint
         }))
         setTools(formattedTools)
         if (formattedTools.length > 0) {
           // 尝试从localStorage读取最后选择的任务类型
           const lastSelectedTool = localStorage.getItem('lastSelectedTool')
           // 如果有存储的任务类型且在工具列表中存在，则使用它；否则使用第一个工具
-          const defaultTool = lastSelectedTool && formattedTools.some(tool => tool.name === lastSelectedTool) 
-            ? lastSelectedTool 
+          const defaultTool = lastSelectedTool && formattedTools.some(tool => tool.name === lastSelectedTool)
+            ? lastSelectedTool
             : formattedTools[formattedTools.length - 1].name // 使用最后一个工具作为默认值
-          
+
           setSelectedTool(defaultTool)
           const selectedToolConfig = formattedTools.find(tool => tool.name === defaultTool)
           if (selectedToolConfig) {
-            setToolConfig(selectedToolConfig.form)
+            setSelectedToolInfo(selectedToolConfig)
           }
         }
       })
@@ -77,7 +77,7 @@ function Index() {
             // 查找对应的工具配置
             const tool = tools.find(t => t.name === task.task_type)
             if (tool) {
-              setToolConfig(tool.form)
+              setSelectedToolInfo(tool)
             }
             // 解析并设置表单数据
             try {
@@ -105,7 +105,7 @@ function Index() {
     const value = e.target.value;
     const tool = tools.find(t => t.name === value)
     setSelectedTool(value)
-    setToolConfig(tool.form)
+    setSelectedToolInfo(tool)
     setFormData({})
     // 将选择的工具保存到localStorage
     localStorage.setItem('lastSelectedTool', value)
@@ -196,7 +196,6 @@ function Index() {
 
     form.validateFields().then((formData) => {
       // 调用task接口创建任务
-      const selectedToolInfo = tools.find(t => t.name === selectedTool);
       fetch('/api/task/create', {
         method: 'POST',
         headers: {
@@ -268,26 +267,22 @@ function Index() {
 
   return (
     <div>
-      <Card title={<Text strong>选择任务执行</Text>} style={{ marginBottom: '24px' }}>
+      <Card title={<Radio.Group
+        value={selectedTool}
+        onChange={handleToolChange}
+        style={{ marginLeft: '3px', display: 'flex', flexWrap: 'wrap'}}
+      >
+        {tools.map(tool => (
+          <Radio key={tool.name} value={tool.name}>
+            {tool.title}
+          </Radio>
+        ))}
+      </Radio.Group>} style={{ marginBottom: '24px' }}>
         <Space direction="vertical" size="large" style={{ width: '100%' }}>
-          <div style={{ marginTop: '8px' }}>
-            <Typography.Text strong>任务类型:</Typography.Text>
-            <Radio.Group 
-              value={selectedTool} 
-              onChange={handleToolChange}
-              style={{ marginLeft: '16px', display: 'flex', flexWrap: 'wrap', gap: '16px' }}
-            >
-              {tools.map(tool => (
-                <Radio key={tool.name} value={tool.name}>
-                  {tool.title}
-                </Radio>
-              ))}
-            </Radio.Group>
-          </div>
-          {toolConfig && (
+          {selectedToolInfo && (
             <div>
               <FormRender
-                schema={toolConfig}
+                schema={selectedToolInfo.form}
                 form={form}
                 onFinish={() => {
                   form.validate().then((values) => {
@@ -296,6 +291,20 @@ function Index() {
                 }}
                 footer={false}
               />
+              {/* 显示当前选中任务的run_endpoint和input_endpoint */}
+              <div style={{ backgroundColor: '#f5f5f5', borderRadius: '4px' }}>
+                <Typography.Text strong>任务端点配置:</Typography.Text>
+                <div style={{ marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <div>
+                    <Typography.Text style={{ marginRight: '8px' }}>运行端点:</Typography.Text>
+                    <Typography.Text code>{selectedToolInfo.run_endpoint || '-'}</Typography.Text>
+                  </div>
+                  <div>
+                    <Typography.Text style={{ marginRight: '8px' }}>输入端点:</Typography.Text>
+                    <Typography.Text code>{selectedToolInfo.input_endpoint || '-'}</Typography.Text>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 

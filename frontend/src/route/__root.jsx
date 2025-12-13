@@ -18,17 +18,17 @@ const RootLayout = () => {
               {
                 key: '/',
                 icon: <HomeOutlined />,
-                label: <Link to="/">任务执行</Link>,
+                label: <Link to="/">执行任务</Link>,
               },
               {
                 key: '/tasks',
                 icon: <TableOutlined />,
-                label: <Link to="/tasks">任务记录</Link>,
+                label: <Link to="/tasks">执行记录</Link>,
               },
               {
-                key: '/task-config',
+                key: '/config',
                 icon: <DatabaseOutlined />,
-                label: <Link to="/task-config">TaskConfig管理</Link>,
+                label: <Link to="/config">任务配置</Link>,
               }
             ]}
           />

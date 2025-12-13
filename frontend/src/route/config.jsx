@@ -14,7 +14,7 @@ const TaskConfigPage = () => {
   const [currentConfig, setCurrentConfig] = useState(null)
   const [modal, modalContext] = Modal.useModal()
 
-  // 获取TaskConfig列表
+  // 获取任务配置列表
   const fetchTaskConfigs = () => {
     setLoading(true)
     fetch('/api/task/config/list')
@@ -24,7 +24,7 @@ const TaskConfigPage = () => {
         setLoading(false)
       })
       .catch(error => {
-        message.error('获取TaskConfig列表失败')
+        message.error('获取任务配置列表失败')
         setLoading(false)
       })
   }
@@ -56,11 +56,11 @@ const TaskConfigPage = () => {
     setModalVisible(true)
   }
 
-  // 删除TaskConfig
+  // 删除任务配置
   const handleDelete = (record) => {
     modal.confirm({
       title: '确认删除',
-      content: `确定要删除TaskConfig: ${record.task_type}吗？`,
+      content: `确定要删除任务配置: ${record.task_type}吗？`,
       okText: '确定',
       okType: 'danger',
       cancelText: '取消',
@@ -84,7 +84,7 @@ const TaskConfigPage = () => {
     })
   }
 
-  // 保存TaskConfig（新增或编辑）
+  // 保存任务配置（新增或编辑）
   const handleSave = () => {
     form.validateFields().then(values => {
       const url = isEditing ? '/api/task/config/update' : '/api/task/config/create'
@@ -112,19 +112,17 @@ const TaskConfigPage = () => {
   // 表格列定义
   const columns = [
     {
-      title: 'TaskType',
+      title: '任务类型',
       dataIndex: 'task_type',
       key: 'task_type',
-      width: 150
     },
     {
-      title: 'Title',
+      title: '标题',
       dataIndex: 'title',
       key: 'title',
-      width: 150
     },
     {
-      title: 'Form',
+      title: '表单配置',
       dataIndex: 'form',
       key: 'form',
       ellipsis: true,
@@ -133,21 +131,20 @@ const TaskConfigPage = () => {
       )
     },
     {
-      title: 'Run',
-      dataIndex: 'run',
-      key: 'run',
+      title: '运行端点',
+      dataIndex: 'run_endpoint',
+      key: 'run_endpoint',
       width: 200
     },
     {
-      title: 'Input',
-      dataIndex: 'input',
-      key: 'input',
+      title: '输入端点',
+      dataIndex: 'input_endpoint',
+      key: 'input_endpoint',
       width: 200
     },
     {
       title: '操作',
       key: 'action',
-      width: 150,
       render: (_, record) => (
         <Space size="middle">
           <Button type="link" icon={<EditOutlined />} onClick={() => handleEdit(record)}>
@@ -164,7 +161,7 @@ const TaskConfigPage = () => {
   return (
     <div style={{ padding: '16px' }}>
         {modalContext}
-      <Card title="TaskConfig管理" bordered={false} extra={
+      <Card title="任务配置管理" bordered={false} extra={
         <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
           新增
         </Button>
@@ -181,7 +178,7 @@ const TaskConfigPage = () => {
 
       {/* 新增/编辑模态框 */}
       <Modal
-        title={isEditing ? '编辑TaskConfig' : '新增TaskConfig'}
+        title={isEditing ? '编辑任务配置' : '新增任务配置'}
         open={modalVisible}
         onOk={handleSave}
         onCancel={() => setModalVisible(false)}
@@ -206,36 +203,36 @@ const TaskConfigPage = () => {
         >
           <Form.Item
             name="task_type"
-            label="TaskType"
-            rules={[{ required: true, message: '请输入TaskType' }]}
+            label="任务类型"
+            rules={[{ required: true, message: '请输入任务类型' }]}
           >
-            <Input placeholder="请输入TaskType" disabled={isEditing} />
+            <Input placeholder="请输入任务类型" disabled={isEditing} />
           </Form.Item>
           <Form.Item
             name="title"
-            label="Title"
-            rules={[{ required: true, message: '请输入Title' }]}
+            label="标题"
+            rules={[{ required: true, message: '请输入标题' }]}
           >
-            <Input placeholder="请输入Title" />
+            <Input placeholder="请输入标题" />
           </Form.Item>
           <Form.Item
             name="form"
-            label="Form (JSON)"
-            rules={[{ required: true, message: '请输入Form' }]}
+            label="表单配置 (JSON)"
+            rules={[{ required: true, message: '请输入表单配置' }]}
           >
-            <TextArea placeholder="请输入Form JSON" rows={6} />
+            <TextArea placeholder="请输入表单配置 JSON" rows={6} />
           </Form.Item>
           <Form.Item
             name="run_endpoint"
-            label="Run Endpoint"
+            label="运行端点"
           >
-            <Input placeholder="请输入Run Endpoint" />
+            <Input placeholder="请输入运行端点" />
           </Form.Item>
           <Form.Item
             name="input_endpoint"
-            label="Input Endpoint"
+            label="输入端点"
           >
-            <Input placeholder="请输入Input Endpoint" />
+            <Input placeholder="请输入输入端点" />
           </Form.Item>
         </Form>
       </Modal>
@@ -243,6 +240,6 @@ const TaskConfigPage = () => {
   )
 }
 
-export const Route = createFileRoute('/task-config')({
+export const Route = createFileRoute('/config')({
   component: TaskConfigPage,
 })
